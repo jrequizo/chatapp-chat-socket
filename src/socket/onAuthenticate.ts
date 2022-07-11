@@ -48,7 +48,7 @@ export async function onAuthenticate(socket: Socket, jwt: string) {
 			socket.emit('authenticated', true)
 		}
 	} catch (error) {
-		console.log(`Client token expired: ${jwt}`)
+		console.log(`Client token expired: ${socket.id}`)
 		socket.emit('authenticated', false)
 	}
 }
