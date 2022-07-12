@@ -47,8 +47,12 @@ export async function onAuthenticate(socket: Socket, jwt: string) {
 			// console.log(`(User)${userData.username}: authenticated`)
 			socket.emit('authenticated', true)
 		}
-	} catch (error) {
-		console.log(`Client token expired: ${socket.id}`)
-		socket.emit('authenticated', false)
+	} catch (error: any) {
+		if (error.type == 'auth/user-disabled') {
+			console.log(`Client token expired: ${socket.id}`)
+			socket.emit('authenticated', false)
+		} else {
+			console.log(error)
+		}
 	}
 }
