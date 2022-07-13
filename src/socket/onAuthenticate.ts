@@ -1,10 +1,10 @@
 import { Socket } from 'socket.io';
 import { z } from 'zod';
 
+import { FirebaseError } from 'firebase-admin/app'
 import { fAdminApp } from '../utils/gcloud/firebase'
 
 const profilesCollection = fAdminApp.firestore().collection('profiles')
-
 
 export const AuthenticateData = z.object({
 	jwt: z.string(),
@@ -47,10 +47,16 @@ export async function onAuthenticate(socket: Socket, jwt: string) {
 			// console.log(`(User)${userData.username}: authenticated`)
 			socket.emit('authenticated', true)
 		}
-	} catch (error: any) {
-		if (error.type == 'auth/user-disabled') {
-			console.log(`Client token expired: ${socket.id}`)
-			socket.emit('authenticated', false)
+	} catch (error: unknown) {
+		const firebaseError = error as FirebaseError
+
+		if (firebaseError) {
+			if (firebaseError.code == 'auth/id-token-expired') {
+				console.log(`Client token expired: ${socket.id}`)
+				socket.emit('authenticated', false)
+			} else {
+				console.log(`Firebase Error: ${firebaseError.message}`)
+			}
 		} else {
 			console.log(error)
 		}
