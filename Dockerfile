@@ -1,4 +1,4 @@
-FROM node:12-alpine AS BUILD_IMAGE
+FROM node:14-alpine AS BUILD_IMAGE
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN npm run gcp-build
 
 RUN npm prune --production
 
-FROM node:12-alpine
+FROM node:14-alpine
 
 WORKDIR /app
 
@@ -22,4 +22,4 @@ COPY --from=BUILD_IMAGE /app/.env.production ./
 
 ENV NODE_ENV=production
 
-CMD ["node", "dist/index.js"]
+ENTRYPOINT [ "node", "dist/index.js" ]
