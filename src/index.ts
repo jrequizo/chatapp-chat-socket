@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 import { Server, Socket } from "socket.io"
 
+import { createServer } from "http";
+
 import path from 'path'
 import dotenv from 'dotenv'
 import dotenvExpand from 'dotenv-expand'
@@ -22,7 +24,8 @@ import { AuthenticateData, onAuthenticate } from './socket/onAuthenticate';
 
 const PORT = parseInt(process.env.PORT!) || 3100
 
-const io = new Server({
+const httpServer = createServer();
+const io = new Server(httpServer, {
 	path: '/',
 	serveClient: false,
 	cors: {
@@ -77,16 +80,14 @@ io.on('connection', function (socket: Socket, ...args) {
 	})
 })
 
-console.log(`Chat Socket.IO: Server listening on port ${PORT}`)
-//io.to(pubsubData.message.room_id).emit('client-message, pubsubData.message.content)
-io.listen(PORT)
-
 /**
  * Automatically shut down the server if we are running a build test fire after the server has instantiated.
  * TODO: Run some health checks on an endpoint to make sure ports are exposed properly?
  * TODO: Run unit tests on the functions in /router
  */
- io.on('listening', () => {
+httpServer.on('listening', () => {
+	console.log(`Chat Socket.IO: Server listening on port ${PORT}`)
+
 	if (process.env.NODE_ENV === "buildtest") {
 		io.close(() => {
 			console.log(`Process ran successfully`)
@@ -94,3 +95,6 @@ io.listen(PORT)
 		})
 	}
 })
+
+//io.to(pubsubData.message.room_id).emit('client-message, pubsubData.message.content)
+httpServer.listen(PORT)
