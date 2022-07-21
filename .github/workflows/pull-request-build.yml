@@ -1,15 +1,13 @@
-name: Deploy to Cloud Run on Merge
+name: Test build
 
 on:
-  push:
+  pull_request:
     branches: [ master ]
 
 jobs:
     deploy:
-        name: Deploy to Cloud Run
+        name: Build Docker image and test container
         runs-on: ubuntu-latest
-        env:
-          IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
         steps:
 
         - name: Checkout repository
@@ -23,9 +21,6 @@ jobs:
         - name: 'Set up Cloud SDK'
           uses: 'google-github-actions/setup-gcloud@v0'
 
-        - name: Configure Docker
-          run: gcloud auth configure-docker --quiet
-
         - name: 'Output default GCP credentials to file'
           run: 'echo "$key" > key.json'
           shell: bash
@@ -33,13 +28,7 @@ jobs:
             key: ${{ secrets.GCP_CREDENTIALS }}
 
         - name: Build Docker image
-          run: docker build . -t $IMAGE_NAME
+          run: docker build . -t buildtest
 
         - name: Test Docker image
-          run: docker run -e NODE_ENV=buildtest $IMAGE_NAME
-
-        - name: Push Docker image
-          run: docker push $IMAGE_NAME
-
-        - name: Deploy Docker image
-          run: gcloud run deploy ${{ secrets.GCP_APP_NAME }} --image $IMAGE_NAME --set-env-vars "^@^NODE_ENV=production" --region australia-southeast2 --platform managed
+          run: docker run -e NODE_ENV=buildtest buildtest
