@@ -41,5 +41,8 @@ jobs:
         - name: Push Docker image
           run: docker push $IMAGE_NAME
 
+        - name: Delete previouos revision
+          run: gcloud run revisions delete 
+
         - name: Deploy Docker image
-          run: gcloud run deploy ${{ secrets.GCP_APP_NAME }} --image $IMAGE_NAME --set-env-vars "^@^NODE_ENV=production" --region asia-southeast1 --allow-unauthenticated --platform managed --revision-suffix=v1 --min-instances=1 --use-http2
+          run: gcloud run deploy ${{ secrets.GCP_APP_NAME }} --image $IMAGE_NAME --set-env-vars "^@^NODE_ENV=production" --region asia-southeast1 --allow-unauthenticated --platform managed --min-instances=1 --use-http2
